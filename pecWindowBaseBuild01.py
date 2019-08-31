@@ -1,10 +1,8 @@
 import tkinter as tk
-from tkinter import scrolledtext
+from tkinter import scrolledtext, Menu, messagebox
 import email, smtplib, ssl, getpass
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-
-port = 465
 
 class App(tk.Frame):
     def __init__(self, master=None):
@@ -14,31 +12,30 @@ class App(tk.Frame):
             senderEmail = "pythontestingconcave@gmail.com"
             recipiantEmail = recipiantInput.get()
             emailSubject = subjectInput.get()
-            emailText = str(emailInput.get('1.0','end-1c'))
+            emailText = emailInput.get('1.0','end-1c')
             
             message = MIMEMultipart('alternative')
-            print(emailSubject)
-            print(str(emailSubject))
+            
             message["Subject"] = str(emailSubject)
-            message["From"] = senderEmail # CHANGE FOR INPUT/USER
-            message["To"] = recipiantEmail
+            message["From"] = str(senderEmail) # CHANGE FOR INPUT/USER
+            message["To"] = str(recipiantEmail)
 
             messageText = emailText
-            plainText = MIMEText(messageText, 'plain')
+            plainText = MIMEText(messageText, 'plain') #The issue doesn't seem to be with text
 
             message.attach(plainText)
 
-            send(recipiantEmail, senderEmail, emailSubject, message, "Mason_123")
+            send(recipiantEmail, senderEmail, message, "Mason_123")
 
-        def send(recipiantEmail, senderEmail, emailSubject, message, password): #REQUIRE PASSWORD PRIOR, popup
+        def send(recipiantEmail, senderEmail, message, password): #REQUIRE PASSWORD PRIOR, popup
             context = ssl.create_default_context()
 
-            with smtplib.SMTP_SSL('smtp.gmail.com', port, context=context) as server:
-                server.login(senderEmail, password) # Next line crashes. Possible problem with the message
-                server.sendmail(senderEmail,recipiantEmail,message) #CLEAR EVERYTHING AFTER SENDING EMAIL
+            with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as server:
+                server.login(senderEmail, password)
+                server.sendmail(senderEmail,recipiantEmail,str(message))   
+            messagebox.showinfo("Success", "Email Sent.")
+            clearFields()         
 
-
-        
         recipiantLabel = tk.Label(self, text="Input Recipiant's Email: ")
         recipiantLabel.grid(column=1,row=0)
 
@@ -57,9 +54,20 @@ class App(tk.Frame):
         subButton = tk.Button(self,text="Send",command=build)
         subButton.grid(column=0, row=3)
 
-        self.pack()
+        def clearFields():
+            recipiantInput.delete('0', 'end')
+            subjectInput.delete('0','end')
+            emailInput.delete('1.0','end-1c')
 
-    
+        menubar = Menu(self.master)
+        self.master.config(menu=menubar)
+
+        fileMenu = Menu(menubar)
+        fileMenu.add_command(label="New Email", command=clearFields)
+        fileMenu.add_command(label="Exit", command=self.master.destroy)
+        menubar.add_cascade(label="File", menu=fileMenu) 
+
+        self.pack()
 
 application = App()
 
