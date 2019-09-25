@@ -7,6 +7,18 @@ usersInfo = []
 numberOfUsers = int(len(usersInfo)/2) # Gives integer for exact number of users. 
 # ^ COULD BE USED TO DETERMINE HOW MANY BUTTONS NEEDED FOR setUser SCREEN
 
+def readCred():
+    credBuffer = open("credStorage.pec", "r")
+    #need to read all data, split via " " then write to usersInfo
+    global usersInfo
+    usersInfo = credBuffer.read().split()
+    credBuffer.close()
+
+def writeCred():
+    credBuffer = open('credStorage.pec', 'w')
+    #develop way to easily create new user and pass pair and write them to credStorage.pec
+    credBuffer.close()
+
 def popup():
     popWin = tkinter.Toplevel()
     popWin.wm_title("Input Credintials")
@@ -59,7 +71,7 @@ def emailWindow():
             message.attach(plainText)
 
             send(recipiantEmail, senderEmail, message, password)
-        except NameError:
+        except:
             popup()
 
     def send(recipiantEmail, senderEmail, message, password):
@@ -94,8 +106,7 @@ def setUserWin():
     userWin.wm_title("Set User")
     userWin.maxsize(720,500)
 
-    usersInfo.append("pythontestingconcave@gmail.com")
-    usersInfo.append("Mason_123")
+    readCred()
 
     def setCreds(userName):
         global setPass
@@ -106,7 +117,7 @@ def setUserWin():
         else:
             messagebox.showinfo("Error", "Something went wrong.")
             userWin.destroy()
-        userWin.destroy()
+        #userWin.destroy()
 
     #Have a button creation method to accommodate infinitely sized userInfo array
     defaultUser = tkinter.Button(userWin,text="Default",command=setCreds('default'))
@@ -117,16 +128,25 @@ class startWindow(tkinter.Frame):
     def __init__(self, master):
         super().__init__(master)
 
+        def clear():
+            global setUser
+            global setPass
+            setUser = None
+            setPass = None
+
         initiateEmail = tkinter.Button(self,text="Email",command=emailWindow)
         initiateEmail.grid(column=0,row=0)
 
         userSelect = tkinter.Button(self,text="Set User",command=setUserWin)
         userSelect.grid(column=1,row=0)
 
+        userClear = tkinter.Button(self,text="Clear User",command=clear)
+        userClear.grid(column=2,row=0)
+
         self.pack()
 
 root = tkinter.Tk()
 m=startWindow(root)
 root.title("PEC")
-root.maxsize(720,500)
+root.minsize(200,200)
 root.mainloop()
