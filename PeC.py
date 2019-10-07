@@ -1,21 +1,27 @@
-#TODO: Figure out how to read emails from gmails API
-
+#Imports
 import tkinter, email, smtplib, ssl, sys, os.path
 from tkinter import scrolledtext, Menu, messagebox, ttk
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+#Global Variable Declation
 usersInfo = []
 numberOfUsers = None
 
+#startUp function
 def startUp():
+    """ This function checks if the current path has 'credStorage.pec' in it
+    and if it doesn't creates it.
+    """
     if not(os.path.isfile('credStorage.pec')):
         createBuffer = open('credStorage.pec','w+')
         createBuffer.close()
     else:
         return(None)
 
+
 def readCred():
+    # reads 'credStorage.pec' and writes all read data to usersInfo and numberOfUsers 
     credBuffer = open("credStorage.pec", "r")
     global usersInfo
     global numberOfUsers
@@ -24,29 +30,32 @@ def readCred():
     credBuffer.close()
 
 def writeCred(userName, password):
+    # writes new data and previous data to 'credStorage.pec'
     credBuffer = open('credStorage.pec', 'a')
     newCred = str(" " + userName + " " + password)
     credBuffer.write(newCred)
     credBuffer.close()
 
 def deleteCred(userName):
+    # deletes data from usersInfo buffer and wipes and re-writes all data to 'credStorage.pec'
     credBuffer = open('credStorage.pec', 'r+')
     bufferedInfo = credBuffer.read().split()
     try:
-        indexToRemove = bufferedInfo.index(userName) #returns an integer
+        indexToRemove = bufferedInfo.index(userName) 
     except ValueError:
         messagebox.showerror("Error","User Does Not Exist")
         return()
     newInfo = bufferedInfo
     passIndex = indexToRemove+1
-    del newInfo[passIndex] #removes pass first
-    del newInfo[indexToRemove] #removes user second
+    del newInfo[passIndex]
+    del newInfo[indexToRemove]
     with open('credStorage.pec','w') as file: 
         for i in range(len(newInfo)):
             file.write(newInfo[i] + " ")
     credBuffer.close()
 
 def deleteUser():
+    #This is the function that creates the window for deleting a user
     deleteUserWin = tkinter.Toplevel()
     deleteUserWin.wm_title("Delete User")
     deleteUserWin.maxsize(700,700)
@@ -58,6 +67,7 @@ def deleteUser():
     deleteUserEntry.grid(row=1,column=1)
 
     def sanitizeInput():
+        #sanitizes user input before sending it to deleteCred function
         thing = deleteUserEntry.get()
         deleteCred(thing)
         deleteUserWin.destroy()
@@ -66,6 +76,7 @@ def deleteUser():
     deleteUserButton.grid(row=2,column=2)
 
 def createNewUser():
+    #This is the function that creates the window for creating a new user
     newUserWin = tkinter.Toplevel()
     newUserWin.wm_title("Create New User")
     newUserWin.maxsize(700,700)
@@ -83,6 +94,7 @@ def createNewUser():
     newPassEntry.grid(row=2,column=1)
 
     def credSanitize():
+        #completely sanitizes user input before sending it to writeCred function
         unsanitizedUser = newUserEntry.get()
         unsanitizedPass = newPassEntry.get()
         spaceSanitizedUser = unsanitizedUser.strip()
@@ -90,15 +102,17 @@ def createNewUser():
         writeCred(spaceSanitizedUser, spaceSanitizedPass)
         newUserWin.destroy()
 
-    submitNewUser = tkinter.Button(newUserWin,text="Create User",command=credSanitize) #writeCred or method for santizing before writeCred.
+    submitNewUser = tkinter.Button(newUserWin,text="Create User",command=credSanitize)
     submitNewUser.grid(row=3,column=3)
 
 def popup():
+    #This function creates a window for inputting credentials prior to sending an email
     popWin = tkinter.Toplevel()
-    popWin.wm_title("Input Credintials")
+    popWin.wm_title("Input Credentials")
     popWin.maxsize(350,100)
 
     def pushCreds():
+        #sends credentials to the global space to be used everywhere in the program
         global setPass
         global setUser
         setPass = passEntry.get()
@@ -121,11 +135,13 @@ def popup():
     button.grid(row=2, column=0)
 
 def emailWindow():
+    #This is the email window
     window = tkinter.Toplevel()
     window.wm_title("Draft EMail")
     window.maxsize(720,500)
 
     def buildEmail():
+        #this function compiles the email prior to sending it
         recipiantEmail = recipiantInput.get()
         emailSubject = subjectInput.get()
         emailText = emailInput.get('1.0','end-1c')
@@ -149,6 +165,7 @@ def emailWindow():
             popup()
 
     def send(recipiantEmail, senderEmail, message, password):
+        #this function sends the email
         context = ssl.create_default_context()
 
         with smtplib.SMTP_SSL('smtp.gmail.com', 465, context=context) as server:
@@ -176,11 +193,13 @@ def emailWindow():
     subButton.grid(column=0, row=3)
 
 def setUserWin():
+    #This is the function that creates the window that allows users to select their 'profile'
     userWin = tkinter.Toplevel()
     userWin.wm_title("Set User")
     userWin.maxsize(720,500)
 
     def credButtonCreate(self):
+        #This function creates all the buttons according to how many users there are in 'credStorage.pec'
         self.buttonArray = []
         for i in range(numberOfUsers):
             nameOfUser = usersInfo[i*2].split('@',1)[0]
@@ -188,6 +207,7 @@ def setUserWin():
             self.buttonArray[i].grid(column=i+1,row=0)
 
     def setCreds(userName):
+        #Globally sets user information depending on pressed button
         global setPass
         global setUser
         try: 
@@ -203,6 +223,7 @@ def setUserWin():
     credButtonCreate(userWin)
 
 class startWindow(tkinter.Frame):
+    #this class is the window that drives the whole program, without it, it wouldn't work.
     def __init__(self, master):
         super().__init__(master)
 
